@@ -2,6 +2,8 @@
 
 **Language / 语言**：[中文](#chinese-version) · [English](#english-version)
 
+> **QQ 交流群**：倒霉蛋记忆中心交流群：1098935008
+
 ## Chinese Version
 
 > 倒霉蛋 · 记忆中心 / Amnesia · Memory Center
