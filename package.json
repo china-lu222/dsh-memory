@@ -1,0 +1,58 @@
+{
+  "name": "dsh-memory",
+  "version": "0.1.0",
+  "private": true,
+  "description": "本地结构化记忆库插件（TS R1：Memory Store + CLI + 最小 Cordis 入口）。旧 JS 实现归档于 legacy-js/，仅用于回滚/对照。",
+  "type": "module",
+  "main": "./lib/cordis/apply.js",
+  "bin": {
+    "dsh-memory": "./lib/cli/index.js"
+  },
+  "exports": {
+    ".": "./lib/cordis/apply.js",
+    "./client": "./lib/client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "src",
+    "cordis.patch.yml",
+    "docs",
+    "README.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-locale"
+      ],
+      "platform": "web"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.client.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.tests.json --noEmit && tsc -p tsconfig.client.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "cli": "tsx src/cli/index.ts",
+    "clean": "node -e \"require('node:fs').rmSync('lib',{recursive:true,force:true})\""
+  },
+  "engines": {
+    "node": ">=22.19"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.10.0",
+    "better-sqlite3": "^11.7.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.9"
+  },
+  "dependencies": {
+    "sqlite-vec": "^0.1.9"
+  }
+}

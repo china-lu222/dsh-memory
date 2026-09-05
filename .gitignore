@@ -1,0 +1,15 @@
+node_modules/
+lib/
+dist/
+*.pre-ts-r1.backup
+
+# 运行期数据：SQLite + Markdown projection + 接管备份
+data/
+
+# vitest 调试残留（一次性输出，不入库）
+vitest-*.log
+vitest-*.json
+vitest-*.txt
+
+# 历史/验收文档与运行期诊断产物：仅本地保留，不入库
+docs/

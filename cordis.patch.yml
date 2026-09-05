@@ -1,0 +1,6 @@
+# dsh-memory bundle patch: inserts the plugin row into the profile roster.
+# Applied as a profile bundle layer (the `dsh.bundle.patch` manifest field)
+# over dsh-base, exactly like dsh-balance-display / dsh-market.
+- insert:
+    - id: dsh-memory
+      name: 'dsh-memory'
