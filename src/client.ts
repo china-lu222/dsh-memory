@@ -619,10 +619,12 @@ window.__ModuleLoader__.load({
       if (!slots || typeof slots.inject !== 'function') return
       if (ctx.locale) attachLocale(ctx.locale)
       ensureStyles()
-      const register = slots.register
-      // Settings-page section embedding the Memory Center page.
+      // Settings-page section embedding the Memory Center page. The slot
+      // runtime routes registration effects through the proxy receiver's `this`,
+      // so register() must stay a method call on `slots`; a detached reference
+      // would throw on the missing context binding.
       slots.inject('settings.section', () =>
-        register({
+        slots.register({
           name: 'settings.section',
           id: 'dsh-memory',
           order: 90,

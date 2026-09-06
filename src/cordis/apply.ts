@@ -27,6 +27,10 @@ import type { FusionStrategy } from "../retrieval/fusion.js";
 import type { ApiActions, ApiRuntimeSnapshot } from "../api/context.js";
 import { registerMemoryCenterApi } from "../api/http.js";
 import { registerMemoryCenterPage } from "../webui/page.js";
+import {
+  readVectorUiOverride,
+  writeVectorUiOverride,
+} from "./vector-ui-override.js";
 
 /** Required at apply time: the system-prompt section seat. */
 export const inject = ["systemPrompt"];
@@ -745,19 +749,27 @@ export function apply(ctx: CordisContext, rawConfig?: PluginConfig): void {
   }
 
   // Vector Retrieval（R4）：默认关闭；启用时构建 embedding + 向量索引。
+  // Memory Center 页的开关把意图持久化到 <storeDir>/vector-ui.json；装配期
+  // 该文件存在时优先于宿主配置，否则回落 vector.enabled。
+  const vectorStoreDir = dirname(storePath);
+  const uiVectorOverride = readVectorUiOverride(vectorStoreDir);
+  const vectorConfig = {
+    ...cfg.vector,
+    enabled: uiVectorOverride === null ? cfg.vector.enabled : uiVectorOverride.enabled,
+  };
   let vectorHost: VectorHost | undefined;
-  if (cfg.vector.enabled) {
+  if (vectorConfig.enabled) {
     try {
       vectorHost = buildVectorHost(
         opened.store.db,
         `${storePath}.vec`,
-        cfg.vector,
+        vectorConfig,
         memoryCache,
       );
       ctx.logger?.info?.(
         "[dsh-memory] vector retrieval enabled (provider=%s; dimension=%d)",
-        cfg.vector.provider,
-        cfg.vector.dimension,
+        vectorConfig.provider,
+        vectorConfig.dimension,
       );
     } catch (err) {
       ctx.logger?.error?.(
@@ -815,11 +827,13 @@ export function apply(ctx: CordisContext, rawConfig?: PluginConfig): void {
   /** R7 ApiContext 运行时快照：与 /api/config 同源，供 systemInfo 展示。 */
   const getApiRuntime = (): ApiRuntimeSnapshot => {
     const v = getRuntime();
+    const cacheStats = readCacheStats(opened.store.db, memoryCache);
+    const processStats = memoryCache?.processStats();
     const base: ApiRuntimeSnapshot = {
       enabled: v.enabled,
       announceToAgent: v.announceToAgent,
       worker: v.worker,
-      cache: v.cache,
+      cache: { ...cacheStats, hitRate: processStats?.hitRate ?? null },
       consolidation: { enabled: v.consolidation.enabled },
       validation: { enabled: v.validation.enabled, dryRun: v.validation.dryRun },
       budget: v.budget,
@@ -833,8 +847,19 @@ export function apply(ctx: CordisContext, rawConfig?: PluginConfig): void {
         dimension: view.dimension ?? null,
         storeCount: view.storeCount,
         healthy: view.available,
+        ...(view.reason !== undefined ? { reason: view.reason } : {}),
       };
     }
+    // 开关目标实时取 override（UI 切换后立即反映），active 仍为本进程启动时的装配状态。
+    const liveUiOverride = readVectorUiOverride(vectorStoreDir);
+    const targetEnabled = liveUiOverride === null ? cfg.vector.enabled : liveUiOverride.enabled;
+    base.vectorPref = {
+      enabled: targetEnabled,
+      active: vectorHost !== undefined,
+      overridden: liveUiOverride !== null,
+      restartRequired: targetEnabled !== (vectorHost !== undefined),
+      provider: cfg.vector.provider,
+    };
     return base;
   };
 
@@ -902,15 +927,17 @@ export function apply(ctx: CordisContext, rawConfig?: PluginConfig): void {
         // R7 Memory Center API：ApiContext/ApiActions 注入 + admin 路由接入 registry。
         const actions: ApiActions = {
           runValidation: (dryRun) => {
-            runHygieneScan(opened.store.db, {
+            const run = runHygieneScan(opened.store.db, {
               actor: "user",
               dryRun: dryRun === true,
             });
-            return true;
+            return { dryRun: run.dryRun, changed: run.changed, skipped: run.skipped };
           },
         };
         if (worker !== undefined) {
-          actions.consolidate = () => scheduleDeepConsolidation(opened.store.db) !== null;
+          actions.consolidate = () => ({
+            scheduledId: scheduleDeepConsolidation(opened.store.db),
+          });
         }
         if (memoryCache !== undefined) {
           const cache = memoryCache;
@@ -923,10 +950,15 @@ export function apply(ctx: CordisContext, rawConfig?: PluginConfig): void {
             return projectionService.listMdFiles().length;
           };
         }
+        actions.setVectorEnabled = (enabled) => {
+          writeVectorUiOverride(vectorStoreDir, enabled);
+          return { enabled, restartRequired: enabled !== (vectorHost !== undefined) };
+        };
         registerMemoryCenterApi(scope.webServer, {
           db: opened.store.db,
           storePath,
           markdownRoot,
+          store: { driver: opened.store.driver, driverNote: opened.store.driverNote },
           runtime: getApiRuntime,
           actor: "user",
           retrievalCache: memoryCache,

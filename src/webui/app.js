@@ -33,8 +33,8 @@
     "col.conflicting": "Conflicting memories", "col.experience": "Experience",
     "act.open": "Open", "act.archive": "Archive", "act.restore": "Restore", "act.back": "Back",
     "act.advance": "Advance", "act.advancePhase": "Advance phase", "act.resolve": "Resolve", "act.discard": "Discard",
-    "act.promote": "Promote", "act.reject": "Reject", "act.validation": "Run validation",
-    "act.consolidation": "Run consolidation", "act.cacheClear": "Clear retrieval cache",
+    "act.promote": "Promote", "act.reject": "Reject", "act.refresh": "Refresh",
+    "act.validation": "Run validation", "act.consolidation": "Run consolidation", "act.cacheClear": "Clear retrieval cache",
     "act.projection": "Rebuild markdown projection",
     "empty.memories": "No memories yet. They appear here after capture events.",
     "empty.experiences": "No experiences yet.",
@@ -45,10 +45,14 @@
     "panel.activity": "Recent activity", "panel.content": "Content", "panel.markdown": "Markdown projection",
     "panel.audit": "Audit trail", "panel.phases": "Phase history", "panel.driver": "Driver & runtime",
     "panel.maintenance": "Maintenance",
-    "kv.driver": "Driver", "kv.driverNote": "Driver note", "kv.mode": "Mode", "kv.vectorSearch": "Vector search",
+    "kv.driver": "Driver", "kv.driverNote": "Driver note",     "kv.vectorSearch": "Vector search",
     "kv.vectorInfo": "Vector info", "kv.queuePending": "Queue pending", "kv.cacheHitRate": "Cache hit rate",
-    "kv.lastValidation": "Last validation", "kv.cacheMode": "Cache mode", "kv.cacheStore": "Cache store",
-    "kv.enabled": "enabled", "kv.disabled": "disabled",
+    "kv.lastValidation": "Last validation",
+    "kv.vectorHint": "When to enable: keyword search keeps missing memories whose wording only partially matches your query (typically once memories grow and phrasing drifts). Enabling does NOT add semantic/paraphrase recall.",
+    "kv.vectorRestart": "restart required",
+    "act.vectorOn": "Turn on", "act.vectorOff": "Turn off", "act.vectorSearch": "Vector search",
+    "kv.enabled": "enabled", "kv.disabled": "disabled", "kv.healthy": "available", "kv.unhealthy": "unavailable",
+    "kv.dead": "dead", "kv.scanned": "scanned", "kv.changed": "changed", "kv.dryRun": "dry-run",
     "prompt.advance": "Target phase (leave blank for auto):",
     "prompt.resolve": "Resolve as (merge | link | supersede | keep_separate):",
     "prompt.merged": "Merged content:", "prompt.rejectNote": "Rejection note (optional):",
@@ -58,9 +62,20 @@
     "confirm.discard": "Discard this conflict pair (keep both memories)?",
     "confirm.promote": "Promote this quarantined memory back into context?",
     "confirm.reject": "Reject this quarantined memory? It will be marked rejected/historical and excluded from context (audit stays).",
-    "flash.archived": "Memory archived", "flash.restored": "Memory restored", "flash.advanced": "Experience advanced",
-    "flash.resolved": "Conflict resolved", "flash.discarded": "Conflict discarded", "flash.promoted": "Promoted",
-    "flash.rejected": "Rejected", "flash.opOk": "Operation ok",
+    "confirm.vectorToggle": "{v} vector search? The choice is saved now but only applies after the host restarts (the running state stays unchanged until then). Continue?",
+    "toast.archived": "Memory archived", "toast.restored": "Memory restored", "toast.advanced": "Experience advanced",
+    "toast.resolved": "Conflict resolved", "toast.discarded": "Conflict discarded", "toast.promoted": "Promoted",
+    "toast.rejected": "Rejected",
+    "toast.vectorPending": "Saved: vector search will be {v} after the host restarts",
+    "toast.validation": "Preview scan done: {changed} memory item(s) due for expiry (DB unchanged)",
+    "toast.consolidation": "Consolidation queued (run {id})",
+    "toast.consolidationDup": "An identical consolidation is already queued for this hour — nothing new scheduled.",
+    "toast.cacheClear": "Cleared {cleared} retrieval cache row(s)",
+    "toast.projection": "Rebuilt projection: {generated} markdown file(s) on disk now",
+    "toast.refreshed": "{memory} memories · {conflicts} conflicts · {experiences} experiences",
+    "dlg.confirm": "Confirm",
+    "dlg.ok": "OK",
+    "dlg.cancel": "Cancel",
   };
 
   // ---- i18n：中文文案 ----
@@ -89,8 +104,8 @@
     "col.conflicting": "冲突双方记忆", "col.experience": "经验",
     "act.open": "打开", "act.archive": "归档", "act.restore": "恢复", "act.back": "返回",
     "act.advance": "推进", "act.advancePhase": "推进阶段", "act.resolve": "解决", "act.discard": "忽略",
-    "act.promote": "恢复", "act.reject": "拒绝", "act.validation": "运行校验",
-    "act.consolidation": "运行整合", "act.cacheClear": "清空检索缓存",
+    "act.promote": "恢复", "act.reject": "拒绝", "act.refresh": "手动刷新",
+    "act.validation": "运行校验", "act.consolidation": "运行整合", "act.cacheClear": "清空检索缓存",
     "act.projection": "重建 Markdown 投影",
     "empty.memories": "还没有记忆。捕获事件发生后它们会出现在这里。",
     "empty.experiences": "还没有经验。",
@@ -101,10 +116,14 @@
     "panel.activity": "最近动态", "panel.content": "内容", "panel.markdown": "Markdown 投影",
     "panel.audit": "审计记录", "panel.phases": "阶段历史", "panel.driver": "驱动与运行时",
     "panel.maintenance": "维护",
-    "kv.driver": "驱动", "kv.driverNote": "驱动说明", "kv.mode": "模式", "kv.vectorSearch": "向量检索",
+    "kv.driver": "驱动", "kv.driverNote": "驱动说明",     "kv.vectorSearch": "向量检索",
     "kv.vectorInfo": "向量信息", "kv.queuePending": "队列待处理", "kv.cacheHitRate": "缓存命中率",
-    "kv.lastValidation": "最近校验", "kv.cacheMode": "缓存模式", "kv.cacheStore": "缓存存储",
-    "kv.enabled": "已启用", "kv.disabled": "已禁用",
+    "kv.lastValidation": "最近校验",
+    "kv.vectorHint": "何时开启：记忆较多、查询措辞与已存记忆常只有部分重叠而漏召回时。注意：本开关不提供“换种说法”的语义召回，开启也无法改善该类漏检。",
+    "kv.vectorRestart": "重启后生效",
+    "act.vectorOn": "开启", "act.vectorOff": "关闭", "act.vectorSearch": "向量检索",
+    "kv.enabled": "已启用", "kv.disabled": "已禁用", "kv.healthy": "可用", "kv.unhealthy": "不可用",
+    "kv.dead": "死信", "kv.scanned": "已扫描", "kv.changed": "已修改", "kv.dryRun": "dry-run",
     "prompt.advance": "目标阶段（留空自动选择）：",
     "prompt.resolve": "解决方式（merge | link | supersede | keep_separate）：",
     "prompt.merged": "合并后的内容：", "prompt.rejectNote": "拒绝备注（可选）：",
@@ -114,9 +133,20 @@
     "confirm.discard": "忽略这对冲突（保留两条记忆）？",
     "confirm.promote": "把这条隔离记忆恢复到上下文中？",
     "confirm.reject": "拒绝这条隔离记忆？它会被标记为 rejected/historical 且不再进入上下文（审计保留）。",
-    "flash.archived": "记忆已归档", "flash.restored": "记忆已恢复", "flash.advanced": "经验已推进",
-    "flash.resolved": "冲突已解决", "flash.discarded": "冲突已忽略", "flash.promoted": "已恢复",
-    "flash.rejected": "已拒绝", "flash.opOk": "操作完成",
+    "confirm.vectorToggle": "要{v}向量检索吗？选择会立即保存，但需重启宿主后才生效（当前运行状态保持不变）。继续？",
+    "toast.archived": "记忆已归档", "toast.restored": "记忆已恢复", "toast.advanced": "经验已推进",
+    "toast.resolved": "冲突已解决", "toast.discarded": "冲突已忽略", "toast.promoted": "已恢复",
+    "toast.rejected": "已拒绝",
+    "toast.vectorPending": "已保存：重启宿主后向量检索将“{v}”",
+    "toast.validation": "预览扫描：{changed} 条记忆应过期（未实际改库）",
+    "toast.consolidation": "已入队整合任务（run {id}）",
+    "toast.consolidationDup": "该小时已有整合任务在队列，本次未重复入队",
+    "toast.cacheClear": "已清空 {cleared} 行检索缓存",
+    "toast.projection": "重建完成：当前投影含 {generated} 个 Markdown 文件",
+    "toast.refreshed": "记忆 {memory} 条 · 冲突 {conflicts} 个 · 经验 {experiences} 条",
+    "dlg.confirm": "确认操作",
+    "dlg.ok": "确定",
+    "dlg.cancel": "取消",
   };
 
   var UI = { en: UI_EN, zh: UI_ZH };
@@ -213,13 +243,23 @@
     cur = lang === "zh" ? "zh" : "en";
     document.documentElement.lang = cur === "zh" ? "zh-CN" : "en";
     document.title = ui("meta.title");
-    var flashEl = document.getElementById("flash");
-    if (flashEl) { flashEl.setAttribute("hidden", ""); flashEl.textContent = ""; }
     shell();
     refresh();
   }
 
 
+  // 中文本地化下把 UTC ISO 时间戳展示为北京时间（UTC+8），其余语言保持 UTC 原文；
+  // 非时间字符串或无法解析的值原样返回。
+  function fmtTime(v) {
+    if (v === null || v === undefined || v === "") return "";
+    if (cur !== "zh") return String(v);
+    var d = new Date(String(v));
+    if (isNaN(d.getTime())) return String(v);
+    var bj = new Date(d.getTime() + 8 * 3600000);
+    function p(n) { return (n < 10 ? "0" : "") + n; }
+    return bj.getUTCFullYear() + "-" + p(bj.getUTCMonth() + 1) + "-" + p(bj.getUTCDate()) +
+      " " + p(bj.getUTCHours()) + ":" + p(bj.getUTCMinutes()) + ":" + p(bj.getUTCSeconds());
+  }
   function esc(v) {
     return String(v === null || v === undefined ? "" : v)
       .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
@@ -268,17 +308,168 @@
   function post(path, body) { return request(path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body || {}) }); }
 
   var root = document.getElementById("mc-root");
-  function flash(msg, isErr) {
-    var box = document.getElementById("flash");
-    if (!box) return;
-    if (!msg) {
-      box.setAttribute("hidden", "");
-      box.textContent = "";
+
+  // ---- 右下角结果弹窗（toast）：标题=操作，正文=本次真实结果/错误原因。
+  // 弹入后停留 TOAST_DISMISS_MS 自动圆滑淡出（transition），也可点击立即关闭；
+  // 多个弹窗在容器内自下而上堆叠，切换导航/刷新列表不影响已弹出的通知。
+  var TOAST_DISMISS_MS = 3800;
+  function toast(kind, title, detail) {
+    var wrap = document.getElementById("dsh-toasts");
+    if (!wrap) {
+      wrap = document.createElement("div");
+      wrap.id = "dsh-toasts";
+      wrap.setAttribute("aria-live", "polite");
+      document.body.appendChild(wrap);
+    }
+    var el = document.createElement("div");
+    el.className = "dsh-toast " + (kind === "err" ? "err" : "ok");
+    var t = document.createElement("div");
+    t.className = "t";
+    t.textContent = title;
+    el.appendChild(t);
+    if (detail) {
+      var d = document.createElement("div");
+      d.className = "d";
+      d.textContent = detail;
+      el.appendChild(d);
+    }
+    wrap.appendChild(el);
+    requestAnimationFrame(function () { el.classList.add("in"); });
+    var gone = false;
+    function dismiss() {
+      if (gone) return;
+      gone = true;
+      window.clearTimeout(timer);
+      el.classList.remove("in");
+      el.classList.add("out");
+      window.setTimeout(function () {
+        if (el.parentNode) el.parentNode.removeChild(el);
+      }, 260);
+    }
+    var timer = window.setTimeout(dismiss, TOAST_DISMISS_MS);
+    el.addEventListener("click", dismiss);
+  }
+
+  // ---- 操作标题：统一 toast 弹窗标题，与按钮/导航文案一致 ----
+  function actionTitle(actName) {
+    return { validation: ui("act.validation"), consolidation: ui("act.consolidation"),
+      "cache-clear": ui("act.cacheClear"), projection: ui("act.projection"),
+      archive: ui("act.archive"), restore: ui("act.restore"), "exp-advance": ui("act.advance"),
+      resolve: ui("act.resolve"), discard: ui("act.discard"),
+      promote: ui("act.promote"), reject: ui("act.reject"),
+      "vector-search": ui("act.vectorSearch") }[actName];
+  }
+  function shortId(id) {
+    return id && id.length > 8 ? id.slice(0, 8) : String(id);
+  }
+  // data=后端 ok.data；errMsg 提供时一律按红色失败弹窗展示错误原文。
+  function opToast(actName, data, errMsg) {
+    var title = actionTitle(actName);
+    var d = data || {};
+    if (errMsg) {
+      toast("err", title, errMsg);
       return;
     }
-    box.removeAttribute("hidden");
-    box.className = isErr ? "err" : "msg";
-    box.textContent = msg;
+    if (d.accepted === false) {
+      toast("err", title, actName === "consolidation"
+        ? ui("toast.consolidationDup")
+        : (d.reason || ""));
+      return;
+    }
+    if (actName === "validation") {
+      toast("ok", title, fmt(ui("toast.validation"), { changed: d.changed }));
+    } else if (actName === "consolidation") {
+      toast("ok", title, fmt(ui("toast.consolidation"), { id: shortId(d.scheduledId) }));
+    } else if (actName === "cache-clear") {
+      toast("ok", title, fmt(ui("toast.cacheClear"), { cleared: d.cleared }));
+    } else if (actName === "projection") {
+      toast("ok", title, fmt(ui("toast.projection"), { generated: d.generated }));
+    }
+  }
+
+  // ---- 页内模态弹窗（替代浏览器 confirm/prompt）----
+  // 打开确认/输入弹窗；opts.onOk 在点“确定”时调用（值为 true / 输入框文本），
+  // opts.onCancel 在点取消 / Esc / 遮罩时调用。textContent 赋值自带转义。
+  var dialogKeyHandler = null;
+  function closeDialog() {
+    var mask = document.getElementById("dsh-dialog");
+    if (!mask) return;
+    if (dialogKeyHandler) { document.removeEventListener("keydown", dialogKeyHandler, true); dialogKeyHandler = null; }
+    mask.remove();
+  }
+  function openDialog(opts) {
+    closeDialog();
+    var mask = document.createElement("div");
+    mask.className = "modal-mask";
+    mask.id = "dsh-dialog";
+    var card = document.createElement("div");
+    card.className = "modal";
+    card.setAttribute("role", "dialog");
+    card.setAttribute("aria-modal", "true");
+    var title = document.createElement("div");
+    title.className = "modal-title";
+    title.textContent = opts.title;
+    card.appendChild(title);
+    var input = null;
+    if (opts.mode === "input") {
+      var ilabel = document.createElement("div");
+      ilabel.className = "modal-text";
+      ilabel.textContent = opts.text || "";
+      card.appendChild(ilabel);
+      input = document.createElement("input");
+      input.type = "text";
+      input.className = "modal-input";
+      if (opts.value !== undefined && opts.value !== null) input.value = opts.value;
+      card.appendChild(input);
+    } else {
+      var bodyText = document.createElement("div");
+      bodyText.className = "modal-text";
+      bodyText.textContent = opts.text || "";
+      card.appendChild(bodyText);
+    }
+    var actions = document.createElement("div");
+    actions.className = "modal-actions";
+    var cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.className = "m-cancel";
+    cancel.textContent = ui("dlg.cancel");
+    var ok = document.createElement("button");
+    ok.type = "button";
+    ok.className = "primary";
+    ok.textContent = ui("dlg.ok");
+    actions.appendChild(cancel);
+    actions.appendChild(ok);
+    card.appendChild(actions);
+    mask.appendChild(card);
+    document.body.appendChild(mask);
+
+    function finish(value) {
+      closeDialog();
+      if (value === null) {
+        if (opts.onCancel) opts.onCancel();
+        return;
+      }
+      if (opts.onOk) opts.onOk(value);
+    }
+    function onKey(ev) {
+      if (ev.key === "Escape") { ev.stopPropagation(); finish(null); }
+      else if (ev.key === "Enter" && input) { ev.preventDefault(); finish(input.value); }
+    }
+    cancel.addEventListener("click", function () { finish(null); });
+    ok.addEventListener("click", function () { finish(input ? input.value : true); });
+    mask.addEventListener("mousedown", function (ev) { if (ev.target === mask) finish(null); });
+    dialogKeyHandler = onKey;
+    document.addEventListener("keydown", onKey, true);
+    if (input) { input.focus(); input.select(); } else { ok.focus(); }
+  }
+  // 页内确认框：点“确定”执行 onOk；取消走 onCancel（可省略）。
+  function askConfirm(text, onOk, onCancel) {
+    openDialog({ mode: "confirm", title: ui("dlg.confirm"), text: text,
+      onOk: onOk, onCancel: onCancel });
+  }
+  // 页内单行输入框：onOk(value)；取消（Esc/点遮罩/取消钮）不回调。
+  function askInput(label, value, onOk) {
+    openDialog({ mode: "input", title: label, text: "", value: value, onOk: onOk });
   }
   function setTitle(title, sub) {
     document.getElementById("pageTitle").textContent = title;
@@ -319,7 +510,6 @@
       langButton("中文", "lang-zh", cur === "zh") +
       langButton("EN", "lang-en", cur === "en") +
       "</div>" +
-      '<div id="flash" hidden></div>' +
       '<h2 id="pageTitle">' + ui("screen.overview.title") + "</h2>" +
       '<p id="pageSub" class="sub"></p>' +
       '<div id="content"></div>' +
@@ -358,7 +548,7 @@
       html += '<div class="panel"><h3>' + ui("panel.byScope") + "</h3>" + bars(m.byScope, "scope") + "</div>";
       html += '<div class="panel"><h3>' + ui("panel.byType") + "</h3>" + bars(m.byType, "type") + "</div>";
       var rows = arrOf(d, ["activity"]).slice(0, 15).map(function (a) {
-        return "<tr>" + tcell(pick(a, ["ts"])) + tcell(et("actor", pick(a, ["actor"]))) +
+        return "<tr>" + tcell(fmtTime(pick(a, ["ts"]))) + tcell(et("actor", pick(a, ["actor"]))) +
           tcell(et("action", pick(a, ["action"]))) + tcell(et("entity", pick(a, ["entityType"]))) +
           tcell(pick(a, ["entityId"])) + "</tr>";
       });
@@ -427,7 +617,7 @@
         html += '<div class="panel"><h3>' + ui("panel.audit") + "</h3><table>" +
           cols([ui("col.time"), ui("col.actor"), ui("col.action"), ui("col.id")]) +
           audit.map(function (a) {
-            return "<tr>" + tcell(pick(a, ["ts"])) + tcell(et("actor", pick(a, ["actor"]))) +
+            return "<tr>" + tcell(fmtTime(pick(a, ["ts"]))) + tcell(et("actor", pick(a, ["actor"]))) +
               tcell(et("action", pick(a, ["action"]))) + tcell(pick(a, ["entityId", "id"])) + "</tr>";
           }).join("") + "</table></div>";
       }
@@ -473,7 +663,7 @@
           cols([ui("col.phase"), ui("col.date"), ui("col.note")]) +
           events.map(function (e) {
             return "<tr>" + tcell(et("phase", pick(e, ["phase"]))) +
-              tcell(pick(e, ["createdAt", "ts", "date"])) +
+              tcell(fmtTime(pick(e, ["createdAt", "ts", "date"]))) +
               tcell(pick(e, ["note"])) + "</tr>";
           }).join("") + "</table></div>";
       }
@@ -493,7 +683,7 @@
       var items = arrOf(d, ["conflicts", "items"]);
       var rows = items.map(function (c) {
         var id = str(pick(c, ["id"]));
-        return "<tr>" + tcell(pick(c, ["createdAt", "ts"])) +
+        return "<tr>" + tcell(fmtTime(pick(c, ["createdAt", "ts"]))) +
           tcell(et("status", pick(c, ["status"]))) +
           '<td class="wide">A · ' + esc(sideContent(c, "memoryA", ["aContent", "left"])) +
           "<br/>B · " + esc(sideContent(c, "memoryB", ["bContent", "right"])) + "</td>" +
@@ -514,7 +704,7 @@
       var items = arrOf(d, ["items", "quarantined"]);
       var rows = items.map(function (q) {
         var id = str(pick(q, ["id"]));
-        return "<tr>" + tcell(pick(q, ["createdAt", "ts"])) + tcell(et("type", pick(q, ["type"]))) +
+        return "<tr>" + tcell(fmtTime(pick(q, ["createdAt", "ts"]))) + tcell(et("type", pick(q, ["type"]))) +
           '<td class="wide">' + esc(pick(q, ["content"])) + "</td>" +
           "<td>" + act(ui("act.promote"), { act: "promote", id: id }, "primary") +
           act(ui("act.reject"), { act: "reject", id: id }, "danger") + "</td></tr>";
@@ -527,31 +717,76 @@
     }).catch(fail);
   }
 
-  function renderSystem() {
+  function renderSystem(pre) {
     setTitle(ui("screen.system.title"), ui("screen.system.sub"));
-    get("/system").then(function (d) {
+    // 可传入已取回的数据直接绘制（sys-refresh 复用，避免双请求）；缺省时自行拉取。
+    var draw = function (d) {
       var counts = d.counts || {};
       var runtime = d.runtime || {};
       var cache = runtime.cache || {};
-      var html = cards([
+      var html = '<div style="text-align:right;margin-bottom:12px">' +
+        act(ui("act.refresh"), { act: "sys-refresh" }, "primary") + "</div>";
+      html += cards([
         [ui("card.schemaVersion"), d.schemaVersion], [ui("card.memoryItems"), counts.memoryItems],
         [ui("card.conflictsOpen"), counts.conflictsOpen],
         [ui("card.experiencesActive"), counts.experiencesActive],
         [ui("card.auditEntries"), counts.auditEntries], [ui("card.eventsTotal"), counts.eventsTotal],
         [ui("card.cacheRows"), cache.rows], [ui("card.cacheHits"), cache.hits]
       ]);
-      var vectorVal = d.vectorEnabled === true ? ui("kv.enabled") : ui("kv.disabled");
+      var store = d.store || {};
+      var vector = runtime.vector || null;
+      var vectorPref = runtime.vectorPref || null;
+      var vectorOn = vectorPref ? vectorPref.enabled === true : !!(vector && vector.enabled === true);
+      var vectorActive = vectorPref ? vectorPref.active === true : !!(vector && vector.enabled === true);
+      var restartNeeded = !!(vectorPref && vectorPref.restartRequired);
+      var vectorInfo = null;
+      if (vectorActive && vector && vector.enabled === true) {
+        var vparts = ["provider=" + vector.provider];
+        if (vector.modelId) vparts.push("model=" + vector.modelId);
+        if (vector.dimension !== null && vector.dimension !== undefined) vparts.push("dim=" + vector.dimension);
+        vparts.push("store=" + Number(vector.storeCount));
+        if (vector.healthy) vparts.push(ui("kv.healthy"));
+        else vparts.push(ui("kv.unhealthy") + (vector.reason ? ": " + vector.reason : ""));
+        vectorInfo = vparts.join(" · ");
+      }
+      // 向量检索行：开关目标取 vectorPref（UI 覆盖优先），提示何时需要开启；
+      // 目标与运行状态不一致（vectorPref.restartRequired）时显示“重启后生效”徽标。
+      var vectorRow = "";
+      if (vectorPref || vector) {
+        vectorRow = "<tr><td>" + esc(ui("kv.vectorSearch")) + "</td><td>" +
+          '<button type="button" class="bd vector-badge' + (vectorOn ? " ok" : "") + '" aria-pressed="' +
+          (vectorOn ? "true" : "false") + '">' +
+          esc(vectorOn ? ui("kv.enabled") : ui("kv.disabled")) + "</button>" +
+          (restartNeeded ? ' <span class="bd warn">' + esc(ui("kv.vectorRestart")) + "</span>" : "") +
+          ' <label class="sw"><input type="checkbox" class="vector-toggle"' + (vectorOn ? " checked" : "") +
+          ' aria-label="' + esc(ui("kv.vectorSearch")) + '"/><i></i></label>' +
+          '<div class="hint">' + esc(ui("kv.vectorHint")) + "</div></td></tr>";
+      }
+      var vectorInfoRow = vectorInfo === null
+        ? ""
+        : "<tr><td>" + esc(ui("kv.vectorInfo")) + "</td><td>" + esc(vectorInfo) + "</td></tr>";
+      var hitRate = null;
+      if (cache.hitRate !== null && cache.hitRate !== undefined) hitRate = (cache.hitRate * 100).toFixed(1) + "%";
+      var queue = d.queue || {};
+      var queueVal = Number(queue.pending);
+      if (Number(queue.dead) > 0) {
+        queueVal = String(queueVal) + " (" + ui("kv.dead") + " " + Number(queue.dead) + ")";
+      }
+      var lastVal = null;
+      if (d.lastValidation) {
+        var lv = d.lastValidation;
+        lastVal = fmtTime(lv.at) + " · " + lv.kind + " · " + ui("kv.scanned") + " " + lv.scanned +
+          " · " + ui("kv.changed") + " " + lv.changed + (lv.dryRun ? " · " + ui("kv.dryRun") : "");
+      }
       html += '<div class="panel"><h3>' + ui("panel.driver") + "</h3><table>" +
-        cols([ui("col.key"), ui("col.value")]) + [
-          [ui("kv.driver"), d.driver], [ui("kv.driverNote"), d.driverNote],
-          [ui("kv.mode"), d.mode], [ui("kv.vectorSearch"), vectorVal],
-          [ui("kv.vectorInfo"), d.vectorInfo],
-          [ui("kv.queuePending"), runtime.queue && runtime.queue.pending],
-          [ui("kv.cacheHitRate"), cache.hitRate],
-          [ui("kv.lastValidation"), runtime.validation && runtime.validation.lastRunAt],
-          [ui("kv.cacheMode"), cache.mode], [ui("kv.cacheStore"), cache.store]
+        cols([ui("col.key"), ui("col.value")]) +
+        (vectorRow || "") + vectorInfoRow + [
+          [ui("kv.driver"), store.driver], [ui("kv.driverNote"), store.driverNote],
+          [ui("kv.queuePending"), queueVal], [ui("kv.cacheHitRate"), hitRate],
+          [ui("kv.lastValidation"), lastVal]
         ].map(function (kv) {
-          return "<tr><td>" + esc(kv[0]) + "</td><td>" + esc(kv[1]) + "</td></tr>";
+          var value = (kv[1] === undefined || kv[1] === null || kv[1] === "") ? "—" : kv[1];
+          return "<tr><td>" + esc(kv[0]) + "</td><td>" + esc(value) + "</td></tr>";
         }).join("") + "</table></div>";
       html += '<div class="panel"><h3>' + ui("panel.maintenance") + "</h3>" +
         act(ui("act.validation"), { act: "validation" }, "primary") +
@@ -559,7 +794,8 @@
         act(ui("act.cacheClear"), { act: "cache-clear" }) +
         act(ui("act.projection"), { act: "projection" }) + "</div>";
       body(html);
-    }).catch(fail);
+    };
+    if (pre) { draw(pre); } else { get("/system").then(draw).catch(fail); }
   }
 
   function refresh() {
@@ -591,87 +827,148 @@
     if (actName === "open") { state.view = "memory-detail"; state.id = id; refresh(); return; }
     if (actName === "exp-open") { state.view = "experience-detail"; state.id = id; refresh(); return; }
     if (actName === "back") { state.view = view; state.id = null; refresh(); return; }
+    if (actName === "sys-refresh") {
+      get("/system").then(function (d) {
+        renderSystem(d);
+        var counts = d.counts || {};
+        toast("ok", ui("act.refresh"), fmt(ui("toast.refreshed"), {
+          memory: Number(counts.memoryItems) || 0,
+          conflicts: Number(counts.conflictsOpen) || 0,
+          experiences: Number(counts.experiencesActive) || 0
+        }));
+      }).catch(fail);
+      return;
+    }
     if (actName === "archive" || actName === "restore") {
       post(base + idPath + "/" + actName).then(function () {
-        flash(actName === "archive" ? ui("flash.archived") : ui("flash.restored"), false);
+        toast("ok", actionTitle(actName),
+          actName === "archive" ? ui("toast.archived") : ui("toast.restored"));
         describe().then(refresh);
-      }).catch(function (e) { flash(str(e && e.message), true); });
+      }).catch(function (e) { toast("err", actionTitle(actName), str(e && e.message)); });
       return;
     }
     if (actName === "exp-advance") {
-      var next = window.prompt(ui("prompt.advance"), "");
-      post("/experiences" + idPath + "/advance", next ? { next: next } : {})
-        .then(function () { flash(ui("flash.advanced"), false); describe().then(refresh); })
-        .catch(function (e) { flash(str(e && e.message), true); });
+      askInput(ui("prompt.advance"), "", function (next) {
+        post("/experiences" + idPath + "/advance", next ? { next: next } : {})
+          .then(function () {
+            toast("ok", actionTitle(actName), ui("toast.advanced"));
+            describe().then(refresh);
+          })
+          .catch(function (e) { toast("err", actionTitle(actName), str(e && e.message)); });
+      });
       return;
     }
     if (actName === "resolve") {
-      var how = window.prompt(ui("prompt.resolve"), "merge");
-      if (how === null) return;
-      how = how.trim().toLowerCase();
-      if (!({ merge: 1, link: 1, supersede: 1, keep_separate: 1 }[how])) {
-        flash(fmt(ui("error.unknownResolution"), { v: how }), true);
-        return;
-      }
-      var payload = { resolution: how };
-      if (how === "merge") {
-        var merged = window.prompt(ui("prompt.merged"), "");
-        if (merged === null) return;
-        if (!merged.trim()) { flash(ui("error.mergeRequired"), true); return; }
-        payload.mergedContent = merged;
-      }
-      if (!window.confirm(fmt(ui("confirm.resolve"), { id: id, how: how }))) return;
-      post("/conflicts" + idPath + "/resolve", payload)
-        .then(function () { flash(ui("flash.resolved"), false); describe().then(refresh); })
-        .catch(function (e) { flash(str(e && e.message), true); });
+      askInput(ui("prompt.resolve"), "merge", function (howRaw) {
+        var how = String(howRaw || "").trim().toLowerCase();
+        if (!({ merge: 1, link: 1, supersede: 1, keep_separate: 1 }[how])) {
+          toast("err", actionTitle(actName), fmt(ui("error.unknownResolution"), { v: how }));
+          return;
+        }
+        function commit(payload) {
+          askConfirm(fmt(ui("confirm.resolve"), { id: id, how: how }), function () {
+            post("/conflicts" + idPath + "/resolve", payload)
+              .then(function () {
+                toast("ok", actionTitle(actName), ui("toast.resolved"));
+                describe().then(refresh);
+              })
+              .catch(function (e) { toast("err", actionTitle(actName), str(e && e.message)); });
+          });
+        }
+        if (how !== "merge") { commit({ resolution: how }); return; }
+        askInput(ui("prompt.merged"), "", function (mergedRaw) {
+          var merged = String(mergedRaw || "");
+          if (!merged.trim()) {
+            toast("err", actionTitle(actName), ui("error.mergeRequired"));
+            return;
+          }
+          commit({ resolution: how, mergedContent: merged });
+        });
+      });
       return;
     }
     if (actName === "discard") {
-      if (!window.confirm(ui("confirm.discard"))) return;
-      post("/conflicts" + idPath + "/discard").then(function () {
-        flash(ui("flash.discarded"), false); describe().then(refresh);
-      }).catch(function (e) { flash(str(e && e.message), true); });
+      askConfirm(ui("confirm.discard"), function () {
+        post("/conflicts" + idPath + "/discard").then(function () {
+          toast("ok", actionTitle(actName), ui("toast.discarded"));
+          describe().then(refresh);
+        }).catch(function (e) { toast("err", actionTitle(actName), str(e && e.message)); });
+      });
       return;
     }
     if (actName === "promote") {
-      if (!window.confirm(ui("confirm.promote"))) return;
-      post("/quarantine" + idPath + "/promote").then(function () {
-        flash(ui("flash.promoted"), false); describe().then(refresh);
-      }).catch(function (e) { flash(str(e && e.message), true); });
+      askConfirm(ui("confirm.promote"), function () {
+        post("/quarantine" + idPath + "/promote").then(function () {
+          toast("ok", actionTitle(actName), ui("toast.promoted"));
+          describe().then(refresh);
+        }).catch(function (e) { toast("err", actionTitle(actName), str(e && e.message)); });
+      });
       return;
     }
     if (actName === "reject") {
-      var note = window.prompt(ui("prompt.rejectNote"), "");
-      if (note === null) return;
-      if (!window.confirm(ui("confirm.reject"))) return;
-      post("/quarantine" + idPath + "/reject", note ? { note: note } : {}).then(function () {
-        flash(ui("flash.rejected"), false); describe().then(refresh);
-      }).catch(function (e) { flash(str(e && e.message), true); });
+      askInput(ui("prompt.rejectNote"), "", function (note) {
+        askConfirm(ui("confirm.reject"), function () {
+          post("/quarantine" + idPath + "/reject", note ? { note: note } : {}).then(function () {
+            toast("ok", actionTitle(actName), ui("toast.rejected"));
+            describe().then(refresh);
+          }).catch(function (e) { toast("err", actionTitle(actName), str(e && e.message)); });
+        });
+      });
       return;
     }
     var opUrl = { validation: "/system/validation", consolidation: "/system/consolidation",
       "cache-clear": "/system/cache/clear", projection: "/system/projection/rebuild" }[actName];
     if (opUrl) {
       post(opUrl, actName === "validation" ? { dryRun: true } : {}).then(function (d) {
-        flash(ui("flash.opOk") + (d && d.message ? " — " + d.message : ""), false);
+        opToast(actName, d, null);
         describe().then(refresh);
-      }).catch(function (e) { flash(str(e && e.message), true); });
+      }).catch(function (e) { opToast(actName, null, str(e && e.message)); });
     }
   }
 
+  // 点击“已启用/已禁用”状态徽标 = 拨动向量检索开关：同步到右侧滑块的
+  // checked，并把 change 委托给下方处理器（含确认框与写盘），保持一致。
   document.addEventListener("click", function (ev) {
     var t = ev.target;
+    var vb = t && t.closest ? t.closest(".vector-badge") : null;
+    if (vb) {
+      var sw = vb.parentNode.querySelector(".vector-toggle");
+      if (sw) {
+        sw.checked = !sw.checked;
+        sw.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+      return;
+    }
     while (t && t !== document && !t.classList.contains("nav")) t = t.parentNode;
     if (t && t !== document && t.classList.contains("nav")) {
       state.view = t.getAttribute("data-view"); state.id = null;
       document.querySelectorAll(".nav.on").forEach(function (n) { n.classList.remove("on"); });
       t.classList.add("on");
-      flash("", false);
       refresh();
       return;
     }
     var btn = ev.target.closest ? ev.target.closest("button[data-act]") : null;
     if (btn) runAction(btn);
+  });
+
+  // 向量检索开关：切换前弹页内确认（写盘后需重启宿主生效），取消则回弹。
+  document.addEventListener("change", function (ev) {
+    var t = ev.target;
+    if (!t || !t.classList || !t.classList.contains("vector-toggle")) return;
+    var on = t.checked === true;
+    var msg = fmt(ui("confirm.vectorToggle"), { v: ui(on ? "act.vectorOn" : "act.vectorOff") });
+    askConfirm(msg, function () {
+      post("/system/vector", { enabled: on }).then(function () {
+        toast("ok", ui("act.vectorSearch"),
+          fmt(ui("toast.vectorPending"), { v: ui(on ? "act.vectorOn" : "act.vectorOff") }));
+        describe().then(refresh);
+      }).catch(function (e) {
+        t.checked = !on;
+        toast("err", ui("act.vectorSearch"), str(e && e.message));
+      });
+    }, function () {
+      t.checked = !on;
+    });
   });
 
   // 嵌入设置面板时，宿主（dsh GUI）语言变化会以 postMessage 实时推送。
@@ -690,6 +987,23 @@
     ".langbar button{margin:0;padding:2px 9px;font-size:11px;line-height:1.5;border-radius:999px;opacity:.8}" +
     ".langbar button.on{opacity:1;background:#35507f;border-color:#35507f;color:#fff}";
   (document.head || document.documentElement).appendChild(styleEl);
+  // 右下角结果弹窗（toast）样式：注入而非 page.ts 静态 CSS，保证无需重编译即可生效。
+  var toastStyleEl = document.createElement("style");
+  toastStyleEl.textContent =
+    "#dsh-toasts{position:fixed;right:18px;bottom:18px;z-index:80;display:flex;flex-direction:column;" +
+    "align-items:flex-end;gap:10px;max-width:min(380px,calc(100vw - 36px));pointer-events:none}" +
+    ".dsh-toast{pointer-events:auto;box-sizing:border-box;width:fit-content;max-width:100%;padding:10px 14px;" +
+    "border-radius:10px;border:1px solid;cursor:pointer;opacity:0;transform:translateY(10px) scale(.98);" +
+    "transition:opacity .22s ease,transform .22s ease}" +
+    ".dsh-toast.in{opacity:1;transform:none}" +
+    ".dsh-toast.out{opacity:0;transform:translateY(6px);transition:opacity .2s ease,transform .2s ease}" +
+    ".dsh-toast .t{font-size:13px;font-weight:600;color:#e8eef7}" +
+    ".dsh-toast .d{font-size:12px;line-height:1.5;margin-top:3px;word-break:break-word}" +
+    ".dsh-toast.ok{background:#102a1d;border-color:#1f5c3c;box-shadow:0 10px 26px rgba(0,0,0,.38)}" +
+    ".dsh-toast.ok .d{color:#a4d9bd}" +
+    ".dsh-toast.err{background:#2b1319;border-color:#6b3240;box-shadow:0 10px 26px rgba(0,0,0,.38)}" +
+    ".dsh-toast.err .d{color:#ffb9c1}";
+  (document.head || document.documentElement).appendChild(toastStyleEl);
 
   document.documentElement.lang = cur === "zh" ? "zh-CN" : "en";
   document.title = ui("meta.title");

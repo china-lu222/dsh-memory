@@ -8,6 +8,7 @@
  * - GET  /dsh-memory/api/overview
  * - GET  /dsh-memory/api/system
  * - POST /dsh-memory/api/system/validation          body { dryRun? }
+ * - POST /dsh-memory/api/system/vector              body { enabled: boolean }（重启宿主后生效）
  * - POST /dsh-memory/api/system/consolidation
  * - POST /dsh-memory/api/system/cache/clear
  * - POST /dsh-memory/api/system/projection/rebuild
@@ -69,6 +70,7 @@ import {
   rebuildMarkdownProjection,
   runConsolidation,
   runValidation,
+  setVectorSearch,
   systemInfo,
 } from "./system.js";
 
@@ -269,6 +271,18 @@ export function registerMemoryCenterApi(
     route(async (req2, res2) => {
       if (!isPost(req2, res2)) return;
       sendResult(res2, rebuildMarkdownProjection(ctx));
+    })(req, res),
+  );
+  // POST /api/system/vector —— 持久化向量检索开关意图（重启生效；未接线 409）。
+  exact("dsh-memory-api-system-vector", `${API_BASE}/system/vector`, (req, res) =>
+    route(async (req2, res2) => {
+      if (!isPost(req2, res2)) return;
+      const body = asRecord(await readJsonBody(req2));
+      if (typeof body.enabled !== "boolean") {
+        sendJson(res2, 400, { ok: false, error: "enabled must be a boolean" });
+        return;
+      }
+      sendResult(res2, setVectorSearch(ctx, body.enabled));
     })(req, res),
   );
 

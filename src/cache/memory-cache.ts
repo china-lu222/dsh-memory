@@ -115,6 +115,11 @@ function watermark(db: SqlDatabase): string {
 }
 
 export class MemoryCache {
+  /** 本进程内检索缓存查询次数（仅本次插件进程生命周期有效）。 */
+  private lookups = 0;
+  /** 本进程内检索缓存命中次数（lookups 的子集）。 */
+  private hits = 0;
+
   constructor(
     private readonly db: SqlDatabase,
     private readonly options: {
@@ -123,6 +128,16 @@ export class MemoryCache {
       retrievalVersion?: string;
     } = {},
   ) {}
+
+  /**
+   * 本进程检索缓存统计：命中率 = hits / lookups；
+   * lookups 为 0（缓存启用后尚无检索）时 hitRate 为 null。
+   */
+  processStats(): { lookups: number; hits: number; hitRate: number | null } {
+    const lookups = this.lookups;
+    const hits = this.hits;
+    return { lookups, hits, hitRate: lookups > 0 ? hits / lookups : null };
+  }
 
   private fingerprint(ctx: MemoryCacheContext): string {
     const embedModel = ctx.embeddingModel ?? this.options.embeddingModel ?? "none";
@@ -161,6 +176,7 @@ export class MemoryCache {
   }
 
   get(ctx: MemoryCacheContext): MemoryCacheGetResult {
+    this.lookups += 1;
     const key = this.cacheKey(ctx);
     const fp = this.fingerprint(ctx);
     const row = this.db
@@ -182,6 +198,7 @@ export class MemoryCache {
       this.db.prepare("DELETE FROM memory_cache WHERE cache_key = ?").run(key);
       return { hit: false, payload: undefined, row: null };
     }
+    this.hits += 1;
     this.db
       .prepare("UPDATE memory_cache SET hits = hits + 1 WHERE cache_key = ?")
       .run(key);
