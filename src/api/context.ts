@@ -24,6 +24,38 @@ export interface ApiRuntimeSnapshot {
   consolidation: { enabled: boolean };
   validation: { enabled: boolean; dryRun: boolean };
   budget: { enabled: boolean };
+  /** R8.1 自动长期记忆：配置、会话事件订阅状态与观测计数。 */
+  autoMemory?: {
+    enabled: boolean;
+    observeAssistant: boolean;
+    maxChars: number;
+    projectId: string | null;
+    /** 任务边界经验学习开关（turn/end completed → auto.task-experience）。 */
+    taskExperience: boolean;
+    attached: boolean;
+    stats: {
+      observed: number;
+      userMessages: number;
+      assistantMessages: number;
+      submitted: number;
+      duplicates: number;
+      blocked: number;
+      skipped: number;
+      synthesized: number;
+      empty: number;
+    };
+    /** Task Boundary 经验学习计数。 */
+    taskBoundary: {
+      observed: number;
+      boundaries: number;
+      completed: number;
+      submitted: number;
+      duplicates: number;
+      noExperience: number;
+      rejected: number;
+      incomplete: number;
+    };
+  };
   vector?: {
     enabled: boolean;
     provider: string;

@@ -3,6 +3,11 @@
 // 导出形态与旧 JS 实现一致（named apply + inject），宿主可同样加载；不依赖 skills/RAG-doc-fetcher 与 DSH Core 运行时文件。
 
 import { dirname, join } from "node:path";
+import {
+  TaskBoundaryAdapter,
+  type TaskBoundaryStats,
+} from "../auto/boundary.js";
+import { AutoMemoryService, type AutoMemoryStats } from "../auto/host.js";
 import { MemoryCache } from "../cache/memory-cache.js";
 import { cachedHybridRetrieve, cachedKeywordRetrieve } from "../cache/retrieve-cached.js";
 import { createEmbeddingProvider, type EmbeddingProvider } from "../embedding/provider.js";
@@ -26,6 +31,7 @@ import type { VectorStore } from "../vector/types.js";
 import type { FusionStrategy } from "../retrieval/fusion.js";
 import type { ApiActions, ApiRuntimeSnapshot } from "../api/context.js";
 import { registerMemoryCenterApi } from "../api/http.js";
+import { registerEventsStream, type EventsStreamHub } from "../stream/sse.js";
 import { registerMemoryCenterPage } from "../webui/page.js";
 import {
   readVectorUiOverride,
@@ -60,6 +66,21 @@ export interface PluginConfig {
   cache?: { enabled?: boolean };
   /** R6 Finalization：Cost/Budget 决策记录（telemetry，检索请求级）。缺省启用 */
   budget?: { enabled?: boolean };
+  /** R8.1：正常聊天自动产生记忆（订阅宿主 session/event）。缺省启用 */
+  autoMemory?: AutoMemoryPluginConfig;
+}
+
+export interface AutoMemoryPluginConfig {
+  /** 是否订阅宿主会话事件自动学习；缺省 true（false 时只剩显式 remember/CLI/API）。 */
+  enabled?: boolean;
+  /** 是否观测 assistant 回复；缺省 true（结论与失败归因常出现在回复中）。 */
+  observeAssistant?: boolean;
+  /** 单条消息进入队列的字符数上限；缺省 4000。 */
+  maxChars?: number;
+  /** 会话所属项目 id；提供后非 personal 候选落 project scope，缺省 null（global）。 */
+  projectId?: string;
+  /** 是否在任务边界（turn/end completed）自动沉淀经验；缺省 true。 */
+  taskExperience?: boolean;
 }
 
 export interface WorkerPluginConfig {
@@ -124,7 +145,11 @@ export interface SystemPromptSectionOptions {
 export interface CordisContext {
   logger?: CordisLogger;
   root?: CordisContext;
-  on?(event: string, listener: (...args: unknown[]) => void): unknown;
+  on?(
+    event: string,
+    listener: (...args: unknown[]) => void,
+    options?: { readonly global?: boolean },
+  ): unknown;
   inject?(
     services: readonly string[],
     callback: (scope: CordisScope) => void,
@@ -141,11 +166,17 @@ export interface CordisScope {
 export interface HttpRequestLike {
   readonly method?: string;
   readonly url?: string;
+  /** 原始请求头（SSE 断线重连的 Last-Event-ID 读取）。 */
+  readonly headers?: Record<string, string | string[] | undefined>;
 }
 
 export interface HttpResponseLike {
   writeHead(statusCode: number, headers: Record<string, string>): void;
   end(chunk?: string): void;
+  /** 流式写（SSE 等长连接响应需要；纯 JSON 响应可不实现）。 */
+  write?(chunk: string): unknown;
+  /** 事件监听（SSE 依赖 'close'/'error' 感知断连）。 */
+  on?(event: string, listener: (...args: unknown[]) => void): unknown;
 }
 
 export interface WebRoute {
@@ -378,6 +409,31 @@ function registerRoutes(
   });
 }
 
+/** 自动记忆未启用时的零计数（config 视图保持字段稳定）。 */
+const EMPTY_AUTO_MEMORY_STATS: AutoMemoryStats = {
+  observed: 0,
+  userMessages: 0,
+  assistantMessages: 0,
+  submitted: 0,
+  duplicates: 0,
+  blocked: 0,
+  skipped: 0,
+  synthesized: 0,
+  empty: 0,
+};
+
+/** Task Boundary 经验学习未启用时的零计数（config 视图保持字段稳定）。 */
+const EMPTY_TASK_BOUNDARY_STATS: TaskBoundaryStats = {
+  observed: 0,
+  boundaries: 0,
+  completed: 0,
+  submitted: 0,
+  duplicates: 0,
+  noExperience: 0,
+  rejected: 0,
+  incomplete: 0,
+};
+
 interface RuntimeConfigView {
   enabled: boolean;
   announceToAgent: boolean;
@@ -387,6 +443,20 @@ interface RuntimeConfigView {
   validation: { enabled: boolean; intervalMs: number; dryRun: boolean };
   /** Cost/Budget 决策记录（telemetry）。disabled 为显式 NOT ENABLED。 */
   budget: { enabled: boolean };
+  /** R8.1 自动长期记忆：配置 + 会话事件订阅状态 + 观测计数。 */
+  autoMemory: {
+    enabled: boolean;
+    observeAssistant: boolean;
+    maxChars: number;
+    projectId: string | null;
+    /** 任务边界经验学习开关（turn/end completed → auto.task-experience）。 */
+    taskExperience: boolean;
+    /** 是否已挂上宿主会话事件（ctx.on 不可用时为 false）。 */
+    attached: boolean;
+    stats: AutoMemoryStats;
+    /** Task Boundary 经验学习计数（未启用时为零计数）。 */
+    taskBoundary: TaskBoundaryStats;
+  };
 }
 
 /** 读 memory_cache 表统计（config 视图用；失败保持全 0）。 */
@@ -436,6 +506,13 @@ interface NormalizedConfig {
   worker: NormalizedWorkerConfig;
   consolidation: { enabled: boolean; intervalMs: number };
   validation: { enabled: boolean; intervalMs: number; dryRun: boolean };
+  autoMemory: {
+    enabled: boolean;
+    observeAssistant: boolean;
+    maxChars: number;
+    projectId: string | null;
+    taskExperience: boolean;
+  };
   cacheEnabled: boolean;
   budgetEnabled: boolean;
 }
@@ -506,6 +583,19 @@ function normalizeConfig(raw: PluginConfig | undefined): NormalizedConfig {
       enabled: cfg.validation?.enabled !== false,
       intervalMs: intervalMs(cfg.validation?.intervalMs, 6 * 60 * 60_000),
       dryRun: cfg.validation?.dryRun === true,
+    },
+    autoMemory: {
+      enabled: cfg.autoMemory?.enabled !== false,
+      observeAssistant: cfg.autoMemory?.observeAssistant !== false,
+      maxChars:
+        typeof cfg.autoMemory?.maxChars === "number" && cfg.autoMemory.maxChars > 0
+          ? Math.floor(cfg.autoMemory.maxChars)
+          : 4_000,
+      projectId:
+        typeof cfg.autoMemory?.projectId === "string" && cfg.autoMemory.projectId.length > 0
+          ? cfg.autoMemory.projectId
+          : null,
+      taskExperience: cfg.autoMemory?.taskExperience !== false,
     },
     cacheEnabled: cfg.cache?.enabled !== false,
     budgetEnabled: cfg.budget?.enabled !== false,
@@ -664,6 +754,8 @@ export function apply(ctx: CordisContext, rawConfig?: PluginConfig): void {
 
   // R6 Finalization：后台 Durable Worker（事件队列消费）。不阻塞宿主启动。
   let worker: DurableWorker | undefined;
+  // R8 Realtime：SSE 事件流 Hub（dispose 时统一断连，防轮询触碰已关库）。
+  let eventsHub: EventsStreamHub | undefined;
   const timers: Array<ReturnType<typeof setInterval>> = [];
   if (cfg.worker.enabled) {
     try {
@@ -782,6 +874,38 @@ export function apply(ctx: CordisContext, rawConfig?: PluginConfig): void {
     }
   }
 
+  // R8.1 自动长期记忆：订阅宿主会话事件（全局作用域），只入队 durable auto.learn；
+  // 记忆的抽取/评分/冲突处理沿用既有 R8 流水线，由 worker 消费时执行。
+  let autoMemory: AutoMemoryService | undefined;
+  let taskBoundary: TaskBoundaryAdapter | undefined;
+  let disposeAutoMemory: (() => void) | undefined;
+  let disposeTaskBoundary: (() => void) | undefined;
+  if (cfg.autoMemory.enabled) {
+    autoMemory = new AutoMemoryService(opened.store.db, {
+      observeAssistant: cfg.autoMemory.observeAssistant,
+      maxChars: cfg.autoMemory.maxChars,
+      projectId: cfg.autoMemory.projectId,
+      logger: ctx.logger,
+    });
+    disposeAutoMemory = autoMemory.attach(ctx);
+    ctx.logger?.info?.(
+      "[dsh-memory] auto memory subscribed to session/event (global; observeAssistant=%s)",
+      String(cfg.autoMemory.observeAssistant),
+    );
+    // Task Boundary 自动经验学习：turn/end(completed) → 抽取/校验 → durable
+    // auto.task-experience；落库由 worker 消费时经既有 experience 域完成。
+    if (cfg.autoMemory.taskExperience) {
+      taskBoundary = new TaskBoundaryAdapter(opened.store.db, {
+        projectId: cfg.autoMemory.projectId,
+        logger: ctx.logger,
+      });
+      disposeTaskBoundary = taskBoundary.attach(ctx);
+      ctx.logger?.info?.(
+        "[dsh-memory] task boundary experience subscribed to turn/end (global)",
+      );
+    }
+  }
+
   // announce 段
   let announce = cfg.announceToAgent;
   let disposeAnnounce: (() => void) | undefined;
@@ -822,6 +946,16 @@ export function apply(ctx: CordisContext, rawConfig?: PluginConfig): void {
       dryRun: cfg.validation.dryRun,
     },
     budget: { enabled: cfg.budgetEnabled },
+    autoMemory: {
+      enabled: cfg.autoMemory.enabled,
+      observeAssistant: cfg.autoMemory.observeAssistant,
+      maxChars: cfg.autoMemory.maxChars,
+      projectId: cfg.autoMemory.projectId,
+      taskExperience: cfg.autoMemory.taskExperience,
+      attached: autoMemory !== undefined && typeof ctx.on === "function",
+      stats: autoMemory?.stats() ?? EMPTY_AUTO_MEMORY_STATS,
+      taskBoundary: taskBoundary?.stats() ?? EMPTY_TASK_BOUNDARY_STATS,
+    },
   });
 
   /** R7 ApiContext 运行时快照：与 /api/config 同源，供 systemInfo 展示。 */
@@ -837,6 +971,7 @@ export function apply(ctx: CordisContext, rawConfig?: PluginConfig): void {
       consolidation: { enabled: v.consolidation.enabled },
       validation: { enabled: v.validation.enabled, dryRun: v.validation.dryRun },
       budget: v.budget,
+      autoMemory: v.autoMemory,
     };
     if (vectorHost !== undefined) {
       const view = vectorHost.view();
@@ -871,8 +1006,17 @@ export function apply(ctx: CordisContext, rawConfig?: PluginConfig): void {
         disposeAnnounce();
         disposeAnnounce = undefined;
       }
+      if (disposeAutoMemory !== undefined) {
+        disposeAutoMemory();
+        disposeAutoMemory = undefined;
+      }
+      if (disposeTaskBoundary !== undefined) {
+        disposeTaskBoundary();
+        disposeTaskBoundary = undefined;
+      }
       for (const t of timers) clearInterval(t);
       const finalize = () => {
+        eventsHub?.closeAll();
         stopWatcher?.();
         projection?.dispose();
         vectorHost?.dispose();
@@ -965,6 +1109,11 @@ export function apply(ctx: CordisContext, rawConfig?: PluginConfig): void {
           actions,
         });
         registerMemoryCenterPage(scope.webServer);
+        eventsHub = registerEventsStream(
+          scope.webServer,
+          opened.store.db,
+          ctx.logger ?? {},
+        );
       } catch (err) {
         ctx.logger?.error?.("[dsh-memory] route registration failed: %s", formatOpenError(err));
       }

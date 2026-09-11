@@ -76,6 +76,10 @@
     "dlg.confirm": "Confirm",
     "dlg.ok": "OK",
     "dlg.cancel": "Cancel",
+    "live.ok": "Live",
+    "live.connecting": "Connecting",
+    "live.off": "Reconnecting",
+    "live.tip": "Memory events refresh this view automatically",
   };
 
   // ---- i18n：中文文案 ----
@@ -147,6 +151,10 @@
     "dlg.confirm": "确认操作",
     "dlg.ok": "确定",
     "dlg.cancel": "取消",
+    "live.ok": "实时",
+    "live.connecting": "连接中",
+    "live.off": "重连中",
+    "live.tip": "记忆事件会自动刷新当前视图",
   };
 
   var UI = { en: UI_EN, zh: UI_ZH };
@@ -244,6 +252,7 @@
     document.documentElement.lang = cur === "zh" ? "zh-CN" : "en";
     document.title = ui("meta.title");
     shell();
+    if (liveSync) liveSync.refreshPill();
     refresh();
   }
 
@@ -305,7 +314,10 @@
     });
   }
   function get(path) { return request(path); }
-  function post(path, body) { return request(path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body || {}) }); }
+  function post(path, body) {
+    return request(path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body || {}) })
+      .then(function (d) { if (liveSync) liveSync.localWrite(); return d; });
+  }
 
   var root = document.getElementById("mc-root");
 
@@ -983,7 +995,7 @@
   var styleEl = document.createElement("style");
   styleEl.textContent =
     "main{position:relative}" +
-    ".langbar{position:absolute;top:16px;right:22px;display:flex;gap:4px;z-index:3}" +
+    ".langbar{position:absolute;top:16px;right:22px;display:flex;gap:4px;z-index:3;align-items:center}" +
     ".langbar button{margin:0;padding:2px 9px;font-size:11px;line-height:1.5;border-radius:999px;opacity:.8}" +
     ".langbar button.on{opacity:1;background:#35507f;border-color:#35507f;color:#fff}";
   (document.head || document.documentElement).appendChild(styleEl);
@@ -1005,8 +1017,36 @@
     ".dsh-toast.err .d{color:#ffb9c1}";
   (document.head || document.documentElement).appendChild(toastStyleEl);
 
+  // ---- R8 实时同步（phase 5）：接入独立引擎 realtime-client.js ----
+  // 引擎负责 EventSource 连接与事件驱动的智能刷新，策略读服务端注入的
+  // window.__mc.sseUrl / __mc.live（live.ts 为单一来源）；本桥只提供引擎没有的
+  // 领域上下文：当前导航状态、刷新入口、i18n 文案，以及可订阅事件名词表
+  // （E 审计 token 表——服务端只按前缀过滤，页面侧完整精确名单仅存于此词表）。
+  var liveSync = null;
+
+  function liveEventTypes() {
+    var names = [];
+    var dict = (E[cur] || E.en).action;
+    for (var name in dict) {
+      if (Object.prototype.hasOwnProperty.call(dict, name)) names.push(name);
+    }
+    return names;
+  }
+
+  function startLiveSync() {
+    if (typeof window.MCLive === "undefined" || !window.MCLive.create) return;
+    liveSync = window.MCLive.create({
+      state: function () { return { view: state.view, id: state.id }; },
+      refresh: function () { refresh(); },
+      text: function (key) { return ui(key); },
+      eventTypes: liveEventTypes(),
+    });
+    liveSync.start();
+  }
+
   document.documentElement.lang = cur === "zh" ? "zh-CN" : "en";
   document.title = ui("meta.title");
   shell();
   refresh();
+  startLiveSync();
 })();

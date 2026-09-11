@@ -28,6 +28,7 @@ import {
   R6_USAGE,
 } from "./r6.js";
 import { cmdBenchmark, R7_USAGE } from "./benchmark.js";
+import { AUTO_USAGE, cmdAutoLearn } from "./auto.js";
 import {
   isLegacyStore,
   LEGACY_BACKUP_SUFFIX,
@@ -47,6 +48,7 @@ Commands:
   experience/profile/feedback/conflict/quarantine/error-intel   R5 域命令（见 help）
   events/queue/consolidate/generalize/heal/validate             R6 维护命令（见 help）
   benchmark               R7 基准评估（输出 JSON，写入 benchmark_runs）
+  auto learn              提交自动学习任务（任务边界 + drain，见 help）
   status                  显示存储状态、驱动与统计
   version                 打印版本
   help                    打印帮助
@@ -307,6 +309,7 @@ async function main(): Promise<void> {
       console.log(R5_USAGE);
       console.log(R6_USAGE);
       console.log(R7_USAGE);
+      console.log(AUTO_USAGE);
       break;
     case "events":
       cmdEvents(rest);
@@ -340,6 +343,9 @@ async function main(): Promise<void> {
       break;
     case "validate":
       cmdValidate(rest);
+      break;
+    case "auto":
+      await cmdAutoLearn(rest);
       break;
     case "benchmark":
       await cmdBenchmark(rest);

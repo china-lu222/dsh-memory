@@ -1,9 +1,12 @@
 /**
  * Memory Center 页面（R7-2/3）：宿主 webServer 注册的静态单页（GET only）。
- * - 路径：/dsh-memory/memory            → HTML 外壳
- * - 路径：/dsh-memory/memory/app.js     → SPA 脚本（纯前端展示层）
+ * - 路径：/dsh-memory/memory                    → HTML 外壳
+ * - 路径：/dsh-memory/memory/realtime-client.js → 实时同步引擎（独立脚本，先行加载）
+ * - 路径：/dsh-memory/memory/app.js             → SPA 脚本（纯前端展示层 + 引擎桥）
  * 数据一律通过 R7-1 的 /dsh-memory/api/* 访问，页面不做任何业务逻辑。
  * 屏幕清单来自 models.ts 的 MEMORY_CENTER_SCREENS（单一来源）。
+ * 实时策略来自 live.ts 的 buildLiveConfig()/DETAIL_VIEWS，注入 window.__mc
+ * 供 realtime-client.js 引擎消费（详情匹配集合等，单一来源不变）。
  */
 
 import { existsSync, readFileSync } from "node:fs";
@@ -11,14 +14,15 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { WebRoute, WebServerLike } from "../cordis/apply.js";
 import { MEMORY_CENTER_SCREENS } from "./models.js";
+import { buildLiveConfig, DETAIL_VIEWS } from "./live.js";
 
 export const MEMORY_PAGE_BASE = "/dsh-memory/memory";
 
-function locateAsset(): string {
+function locateAsset(name: string): string {
   const here = path.dirname(fileURLToPath(import.meta.url));
   const candidates = [
-    path.join(here, "app.js"),
-    path.join(here, "..", "..", "src", "webui", "app.js"),
+    path.join(here, name),
+    path.join(here, "..", "..", "src", "webui", name),
   ];
   for (const candidate of candidates) {
     if (existsSync(candidate)) return candidate;
@@ -26,7 +30,8 @@ function locateAsset(): string {
   throw new Error(`webui asset not found; tried ${candidates.join(", ")}`);
 }
 
-const APP_JS = readFileSync(locateAsset(), "utf8");
+const APP_JS = readFileSync(locateAsset("app.js"), "utf8");
+const REALTIME_JS = readFileSync(locateAsset("realtime-client.js"), "utf8");
 
 const CSS = `
 * { box-sizing: border-box; }
@@ -98,6 +103,15 @@ pre { background: #0b101d; border: 1px solid #22304e; border-radius: 8px; paddin
 `;
 
 function buildPageHtml(): string {
+  const live = buildLiveConfig();
+  // realtime-client.js 读取顶层 sseUrl 与 live 策略（含 live.ts DETAIL_VIEWS 的
+  // JSON 形态 detailViews，详情实体匹配用）；live.stream 保留在 live 内以维持
+  // buildLiveConfig 注入契约不变。
+  const injected = {
+    screens: MEMORY_CENTER_SCREENS,
+    live: { ...live, detailViews: [...DETAIL_VIEWS] },
+    sseUrl: live.stream,
+  };
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -105,10 +119,11 @@ function buildPageHtml(): string {
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Amnesia · Memory Center</title>
 <style>${CSS}</style>
-<script>window.__mc = { screens: ${JSON.stringify(MEMORY_CENTER_SCREENS)} };</script>
+<script>window.__mc = ${JSON.stringify(injected)};</script>
 </head>
 <body>
 <div id="mc-root"></div>
+<script src="${MEMORY_PAGE_BASE}/realtime-client.js"></script>
 <script src="${MEMORY_PAGE_BASE}/app.js"></script>
 </body>
 </html>`;
@@ -137,6 +152,12 @@ export function registerMemoryCenterPage(webServer: WebServerLike | undefined): 
     kind: "exact",
     path: MEMORY_PAGE_BASE,
     handler: handlerFor(PAGE_HTML, "text/html; charset=utf-8"),
+  });
+  webServer.register({
+    name: "dsh-memory-memory-page-live-engine",
+    kind: "exact",
+    path: `${MEMORY_PAGE_BASE}/realtime-client.js`,
+    handler: handlerFor(REALTIME_JS, "text/javascript; charset=utf-8"),
   });
   webServer.register({
     name: "dsh-memory-memory-page-asset",

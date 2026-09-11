@@ -164,6 +164,7 @@ operations: System
 - **Review Center**：冲突评审（supersede / merge / discard）、隔离区评审（promote / reject）、经验推进（advance）；
 - **Conflict Review**：近似重复进入 Conflicts、低置信进入 Quarantine，操作全部留审计；
 - **Benchmark**：System 屏触发真实 Store 检索基准（keyword / latency / cache-hit / context / token-budget），种子数据单事务写入、结束回滚，零污染生产记忆。
+- **实时同步（R8）**：`/dsh-memory/api/events/stream` 从 durable `events` 表推送已完成域事件（`memory.*` / `experience.*` / `conflict.*` / `generalize.*`）；Memory Center 按“当前视图订阅 + 增量更新 / 智能 refetch”驱动刷新——连续事件合并为一次（debounce），列表屏只随相关域、详情屏只跟随同实体（memoryId 匹配）、本地写操作的 SSE 回声在静音窗口内被忽略、页面隐藏时挂起、回到可见后补刷。事件负载只是审计锚点，增量靠“事件到达 → 仅重取当前受影响视图”，而非全页导航或跨视图批量拉取。
 
 ---
 
@@ -237,7 +238,7 @@ Memory Center WebUI（R7，六屏）
 | R5 | Memory Governance（experience / feedback / conflict / quarantine / error-intel） | ✅ 2026-09-04 |
 | R6 | Reliability System（durable queue / worker / cache / backup / restore / validate） | ✅ 2026-09-05 |
 | R7 | Memory Center（registry API + 六屏 WebUI + Review Center + Benchmark） | ✅ 2026-09-05 |
-| R8 | Release Engineering（仓库整理 + Release Audit） | ✅ 2026-09-05 |
+| R8 | Release Engineering（仓库整理 + Release Audit + SSE 实时事件流 + WebUI 实时同步） | ✅ 2026-09-09 |
 
 **状态表只反映已交付能力，不以路线图充当已实现功能。**
 
@@ -461,7 +462,7 @@ dsh-memory heal --requeue                       # dead 事件全部重新入队
 | `npm run cli -- <args>` | 源码直跑 CLI（tsx → `src/cli/index.ts`），免构建 |
 | `npm run clean` | 删除 `lib/` |
 
-测试基线：**13 个文件 / 133 用例全部通过**（R8 Release Gate 复跑记录，覆盖 store / legacy-takeover / projection / retrieval / r5 / r6 / r6-final / r7-http / r7-webui / r7-benchmark / r7-final 等）。测试使用插件自带 `node_modules/` 工具链运行。
+测试基线：**18 个文件 / 178 用例全部通过**（R8 Release Gate 复跑记录，覆盖 store / legacy-takeover / projection / retrieval / r5 / r6 / r6-final / r7-http / r7-webui / r7-benchmark / r7-final / r7-system / auto / auto-task / r8-sse / r8-live 等）。测试使用插件自带 `node_modules/` 工具链运行。
 
 只读取证工具（排障时使用，绝不修改源库）：
 
@@ -490,8 +491,9 @@ plugins/dsh-memory/
 │   ├── cache/          # 上下文感知检索缓存（水位失效）
 │   ├── cost/           # 检索预算遥测
 │   ├── worker/         # durable worker 与默认消费者
+│   ├── stream/         # R8 SSE：cursor / filter / source / sse（durable events 增量回放）
 │   ├── api/            # Memory Center registry HTTP API（http.ts / context.ts）
-│   ├── webui/          # Memory Center 静态单页（page.ts / app.js / models.ts）
+│   ├── webui/          # Memory Center 静态单页（page.ts / live.ts / realtime-client.js / app.js / models.ts）
 │   ├── cli/            # 命令行入口与 R5/R6 子命令
 │   ├── cordis/         # apply.ts —— 宿主接线入口（唯一被宿主加载的面）
 │   ├── benchmark/      # R7 基准（seed + 回滚，零污染）
@@ -710,6 +712,7 @@ operations: System
 - **Review Center**: conflict review (supersede / merge / discard), quarantine review (promote / reject), and experience advancement (advance);
 - **Conflict review**: near-duplicates land in Conflicts and low-confidence items in Quarantine; every operation stays audited;
 - **Benchmark**: the System screen runs real store retrieval benchmarks (keyword / latency / cache-hit / context / token-budget); seed data is written in one transaction and rolled back when finished — zero pollution of production memory.
+- **Real-time sync (R8)**: `/dsh-memory/api/events/stream` pushes completed domain events (`memory.*` / `experience.*` / `conflict.*` / `generalize.*`) from the durable `events` table; Memory Center refreshes through "current-view subscription + incremental update / smart refetch" — consecutive events merge into one refresh (debounce), list screens follow only their own domains, detail screens follow only the same entity (memoryId match), SSE echoes of local writes are ignored inside a mute window, and refreshes pause while the page is hidden and catch up when it becomes visible. Event payloads are audit anchors only; incrementality means "an event arrived → re-fetch only the currently affected view", never whole-page navigation or cross-view bulk fetches.
 
 ---
 
@@ -783,7 +786,7 @@ Memory Center WebUI (R7, six screens)
 | R5 | Memory Governance (experience / feedback / conflict / quarantine / error-intel) | ✅ 2026-09-04 |
 | R6 | Reliability System (durable queue / worker / cache / backup / restore / validate) | ✅ 2026-09-05 |
 | R7 | Memory Center (registry API + six-screen WebUI + Review Center + Benchmark) | ✅ 2026-09-05 |
-| R8 | Release Engineering (repository tidy-up + Release Audit) | ✅ 2026-09-05 |
+| R8 | Release Engineering (repository tidy-up + Release Audit + SSE real-time stream + WebUI live sync) | ✅ 2026-09-09 |
 
 **The status table only reflects delivered capability; it never presents a roadmap as implemented functionality.**
 
@@ -1007,7 +1010,7 @@ The full command list is authoritative in `dsh-memory help`; `benchmark` prints 
 | `npm run cli -- <args>` | run the CLI from source (tsx → `src/cli/index.ts`), no build required |
 | `npm run clean` | delete `lib/` |
 
-Test baseline: **13 files / 133 cases, all passing** (re-run record of the R8 Release Gate; covering store / legacy-takeover / projection / retrieval / r5 / r6 / r6-final / r7-http / r7-webui / r7-benchmark / r7-final and more). Tests run on the plugin's own `node_modules/` toolchain.
+Test baseline: **18 files / 178 cases, all passing** (re-run record of the R8 Release Gate; covering store / legacy-takeover / projection / retrieval / r5 / r6 / r6-final / r7-http / r7-webui / r7-benchmark / r7-final / r7-system / auto / auto-task / r8-sse / r8-live and more). Tests run on the plugin's own `node_modules/` toolchain.
 
 Read-only forensics (for troubleshooting; never modifies the source database):
 
@@ -1036,8 +1039,9 @@ plugins/dsh-memory/
 │   ├── cache/          # context-aware retrieval cache (watermark invalidation)
 │   ├── cost/           # retrieval budget telemetry
 │   ├── worker/         # durable workers and default consumers
+│   ├── stream/         # R8 SSE: cursor / filter / source / sse (durable-events incremental replay)
 │   ├── api/            # Memory Center registry HTTP API (http.ts / context.ts)
-│   ├── webui/          # Memory Center static single page (page.ts / app.js / models.ts)
+│   ├── webui/          # Memory Center static single page (page.ts / live.ts / realtime-client.js / app.js / models.ts)
 │   ├── cli/            # CLI entry and R5/R6 subcommands
 │   ├── cordis/         # apply.ts — host wiring entry (the only face the host loads)
 │   ├── benchmark/      # R7 benchmarks (seed + rollback; zero pollution)
